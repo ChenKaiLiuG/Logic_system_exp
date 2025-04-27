@@ -64,7 +64,8 @@ module Marquee (
             counter <= 29'd0;
             current_state <= R1_S0;
             round_type <= 0;
-        end else begin
+        end 
+        else begin
             if (round_type == 0) begin // 第一輪
                 if (counter == `CYCLE_05S - 1) begin
                     counter <= 29'd0;
@@ -81,10 +82,12 @@ module Marquee (
                         end
                         default: current_state <= R1_S0;
                     endcase
-                end else begin
+                end 
+                else begin
                     counter <= counter + 1'b1;
                 end
-            end else begin // 第二輪
+            end 
+            else begin // 第二輪
                 if (counter == `CYCLE_025S - 1) begin
                     counter <= 29'd0;
                     case (current_state)
@@ -100,7 +103,8 @@ module Marquee (
                         end
                         default: current_state <= R2_S0;
                     endcase
-                end else begin
+                end 
+                else begin
                     counter <= counter + 1'b1;
                 end
             end
