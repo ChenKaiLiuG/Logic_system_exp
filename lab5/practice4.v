@@ -11,13 +11,11 @@ module ButtonControlledMarquee (
     output reg [3:0] speed_led // {led5_g, led4_g, led_r, led4_r}
 );
 
-    // 速度模式定義 (計數器終止值)
     localparam SPEED_2S   = `CLK_FREQUENCY * 2 - 1;
     localparam SPEED_1S   = `CLK_FREQUENCY * 1 - 1;
     localparam SPEED_05S  = `CLK_FREQUENCY / 2 - 1;
     localparam SPEED_025S = `CLK_FREQUENCY / 4 - 1;
 
-    // 速度模式參數
     parameter SPEED_2S_MODE   = 2'b00;
     parameter SPEED_1S_MODE   = 2'b01;
     parameter SPEED_05S_MODE  = 2'b10;
