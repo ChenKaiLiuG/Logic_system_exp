@@ -4,27 +4,26 @@ module ButtonControlledMarquee_tb;
 
     reg clk;
     reg rst;
-    reg [1:0] btn;
+    reg btn0; // Speed Up
+    reg btn1; // Speed Down
     wire [3:0] led;
     wire [3:0] speed_led;
 
-    // 實例化待測試的 ButtonControlledMarquee 模組
     ButtonControlledMarquee uut (
         .clk(clk),
         .rst(rst),
-        .btn(btn),
+        .btn0(btn0),
+        .btn1(btn1),
         .led(led),
         .speed_led(speed_led)
     );
 
-    // 時脈產生
-    parameter CLK_PERIOD = 8 ns; // 對應 125MHz 時脈
+    parameter CLK_PERIOD = 8; // 對應 125MHz 時脈
     initial begin
         clk = 0;
         forever #(CLK_PERIOD / 2) clk = ~clk;
     end
 
-    // 重置訊號產生
     initial begin
         rst = 1;
         #20;
@@ -32,36 +31,47 @@ module ButtonControlledMarquee_tb;
         #20;
     end
 
-    // 按鈕輸入產生
     initial begin
-        btn = 2'b11; // 初始未按下
+        btn0 = 1'b0; 
+        btn1 = 1'b0;
 
-        #5000000; // 模擬一段時間
+        #500000; 
 
-        // 按下 Speed Up 按鈕 (btn[0])
-        btn = 2'b01;
+        // Speed Up to 1 (btn0)
+        btn0 = 1'b1;
         #50000;
-        btn = 2'b11;
+        btn0 = 1'b0;
         #1000000;
 
-        // 按下 Speed Down 按鈕 (btn[1])
-        btn = 2'b10;
+        // Speed Down to 0 (btn1)
+        btn1 = 1'b1;
         #50000;
-        btn = 2'b11;
+        btn1 = 1'b0;
         #1000000;
 
-        // 再次按下 Speed Up
-        btn = 2'b01;
+        // Speed Up to 1
+        btn0 = 1'b1;
         #50000;
-        btn = 2'b11;
+        btn0 = 1'b0;
+        #2000000;
+        
+        // Speed Up to 2
+        btn0 = 1'b1;
+        #50000;
+        btn0 = 1'b0;
+        #2000000;
+        
+        // Speed Up to 3
+        btn0 = 1'b1;
+        #50000;
+        btn0 = 1'b0;
         #2000000;
 
         $finish;
     end
 
-    // 監測輸出訊號
     initial begin
-        $monitor("Time=%t, rst=%b, btn=%b, led=%b, speed_led=%b", $time, rst, btn, led, speed_led);
+        $monitor("Time=%t, rst=%b, btn0=%b, btn1=%b, led=%b, speed_led=%b", $time, rst, btn0, btn1, led, speed_led);
     end
 
 endmodule
