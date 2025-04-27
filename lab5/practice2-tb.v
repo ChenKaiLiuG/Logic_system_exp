@@ -18,7 +18,7 @@ module Marquee_tb;
     );
 
     // 時脈產生
-    parameter CLK_PERIOD = 8 ns; // 對應 125MHz 時脈 (1 / 125e6 = 8ns)
+    parameter CLK_PERIOD = 8; // 對應 125MHz 時脈 (1 / 125e6 = 8ns)
     initial begin
         clk = 0;
         forever #(CLK_PERIOD / 2) clk = ~clk;
