@@ -1,5 +1,5 @@
-`define CLK_FREQUENCY 125000000
-`define DEBOUNCE_TIME 27'd2000000 // 16ms @ 125MHz
+`define CLK_FREQUENCY 124999999
+`define DEBOUNCE_TIME 32'd2000000 // 16ms @ 125MHz
 // * 1/1000000
 
 module ButtonControlledMarquee (
@@ -21,7 +21,7 @@ module ButtonControlledMarquee (
     parameter SPEED_05S_MODE  = 2'b10;
     parameter SPEED_025S_MODE = 2'b11;
 
-    reg [26:0] counter;
+    reg [31:0] counter;
     reg [2:0] current_led;
     reg [1:0] current_speed;
     reg [26:0] debounce_counter_up;
@@ -35,17 +35,17 @@ module ButtonControlledMarquee (
         if (rst) begin
             current_speed <= SPEED_2S_MODE;
             current_led <= 3'd0;
-            counter <= 27'd0;
+            counter <= 32'd0;
             speed_led <= 4'b0001;
             btn_history_up <= 1'b0;
-            debounce_counter_up <= 27'd0;
+            debounce_counter_up <= 32'd0;
             btn_history_down <= 1'b0;
-            debounce_counter_down <= 27'd0;
+            debounce_counter_down <= 32'd0;
             led <= 4'b0001;
             update_led <= 1'b0;
             going_up <= 1'b1; // Start going up
         end else begin
-            if (btn0 != btn_history_up) debounce_counter_up <= 27'd0;
+            if (btn0 != btn_history_up) debounce_counter_up <= 32'd0;
             else if (debounce_counter_up < `DEBOUNCE_TIME - 1) debounce_counter_up <= debounce_counter_up + 1'b1;
             btn_history_up <= btn0;
             if (debounce_counter_up == `DEBOUNCE_TIME - 1 && btn0 == 1'b1 && btn_history_up == 1'b0) begin
@@ -55,11 +55,11 @@ module ButtonControlledMarquee (
                     SPEED_05S_MODE  : current_speed <= SPEED_025S_MODE;
                     default         : current_speed <= SPEED_025S_MODE;
                 endcase
-                counter <= 27'd0;
+                counter <= 32'd0;
                 update_led <= 1'b1;
             end
 
-            if (btn1 != btn_history_down) debounce_counter_down <= 27'd0;
+            if (btn1 != btn_history_down) debounce_counter_down <= 32'd0;
             else if (debounce_counter_down < `DEBOUNCE_TIME - 1) debounce_counter_down <= debounce_counter_down + 1'b1;
             btn_history_down <= btn1;
             if (debounce_counter_down == `DEBOUNCE_TIME - 1 && btn1 == 1'b1 && btn_history_down == 1'b0) begin
@@ -69,7 +69,7 @@ module ButtonControlledMarquee (
                     SPEED_1S_MODE   : current_speed <= SPEED_2S_MODE;
                     default         : current_speed <= SPEED_2S_MODE;
                 endcase
-                counter <= 27'd0;
+                counter <= 32'd0;
                 update_led <= 1'b1;
             end
 
@@ -84,7 +84,7 @@ module ButtonControlledMarquee (
             case (current_speed)
                 SPEED_2S_MODE:
                     if (update_led || counter == SPEED_2S) begin
-                        counter <= 27'd0;
+                        counter <= 32'd0;
                         if (going_up) begin
                             if (current_led == 3'd3) begin
                                 current_led <= current_led - 1'b1;
@@ -106,7 +106,7 @@ module ButtonControlledMarquee (
                     end
                 SPEED_1S_MODE:
                     if (update_led || counter == SPEED_1S) begin
-                        counter <= 27'd0;
+                        counter <= 32'd0;
                         if (going_up) begin
                             if (current_led == 3'd3) begin
                                 current_led <= current_led - 1'b1;
@@ -128,7 +128,7 @@ module ButtonControlledMarquee (
                     end
                 SPEED_05S_MODE:
                     if (update_led || counter == SPEED_05S) begin
-                        counter <= 27'd0;
+                        counter <= 32'd0;
                         if (going_up) begin
                             if (current_led == 3'd3) begin
                                 current_led <= current_led - 1'b1;
@@ -150,7 +150,7 @@ module ButtonControlledMarquee (
                     end
                 SPEED_025S_MODE:
                     if (update_led || counter == SPEED_025S) begin
-                        counter <= 27'd0;
+                        counter <= 32'd0;
                         if (going_up) begin
                             if (current_led == 3'd3) begin
                                 current_led <= current_led - 1'b1;
