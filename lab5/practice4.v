@@ -8,7 +8,7 @@ module ButtonControlledMarquee (
     input btn0, // Speed Up 
     input btn1, // Speed Down 
     output reg [3:0] led, 
-    output reg [3:0] speed_led // {led5_g, led4_g, led_r, led4_r}
+    output reg [3:0] speed_led // {led5_g, led4_g, led5_r, led4_r}
 );
 
     localparam SPEED_2S   = `CLK_FREQUENCY * 2 - 1;
