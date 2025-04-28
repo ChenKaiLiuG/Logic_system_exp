@@ -1,4 +1,4 @@
-`define CYCLE_025S 26'd99
+`define CYCLE_025S 26'd31250000 // 99 to testbench
 
 module Marquee (
     input clk,
@@ -7,7 +7,7 @@ module Marquee (
 );
 
     reg [25:0] counter;
-    reg [2:0] state; // 需要更多狀態來實現新的順序
+    reg [2:0] state;
     reg [3:0] led_sel;
 
     localparam S0 = 3'b000; // LED 1
@@ -56,7 +56,7 @@ module Marquee (
                         led_sel <= 4'b0001;
                     end
                     S6: begin
-                        state <= S1; // 從 LED 1 回到 LED 2 開始新的循環
+                        state <= S1;
                         led_sel <= 4'b0010;
                     end
                     default: state <= S0;
