@@ -26,7 +26,7 @@ module Marquee_tb;
         rst = 1;
         #10; // rst 10 ns
         rst = 0;
-        #10000000000; 
+        #100000000; 
         $finish;
     end
 
