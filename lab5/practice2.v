@@ -1,5 +1,5 @@
-`define CYCLE_05S 27'd62500000
-`define CYCLE_025S 27'd31250000
+`define CYCLE_05S 27'd62500000 // 99 to testbench
+`define CYCLE_025S 27'd31250000 // 49 to testbench
 
 module Marquee (
     input clk,
