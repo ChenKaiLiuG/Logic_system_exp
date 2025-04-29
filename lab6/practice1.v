@@ -1,4 +1,4 @@
-`define CYCLE_1MS 17'd124999
+`define CYCLE_1MS 17'd124999 //49 for testbench
 
 module Rainbow_Breathing_LED (
     input clk, rst,
