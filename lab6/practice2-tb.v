@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+`timescale 1ns / 1ns
 
 module Adjustable_Rainbow_Breathing_LED_tb;
 
@@ -47,21 +47,22 @@ module Adjustable_Rainbow_Breathing_LED_tb;
     endtask
 
     initial begin
-        // 施加重置訊號
+        // 施加重置訊號並觀察初始狀態 (2 秒模式, 紅色)
         #10 rst = 0;
-        $display("Time=%0t: Reset done. Speed Mode=%b (should be 0100)", $time, led_mode);
-        #100; // 觀察初始狀態
+        #20;
+        $display("Time=%0t: Reset done. Speed Mode=%b (should be 0001), Color should be Red", $time, led_mode);
+        #100;
 
         // 測試速度增加和減少
         $display("--- Testing Speed Change ---");
-        press_button(2'b01); // 加速 (0100 -> 1000)
-        press_button(2'b01); // 加速 (1000 -> 0010)
-        press_button(2'b10); // 減速 (0010 -> 0100)
-        press_button(2'b10); // 減速 (0100 -> 0001)
+        press_button(2'b01); // 加速 (0001 -> 0010)
+        press_button(2'b01); // 加速 (0010 -> 0100)
+        press_button(2'b10); // 減速 (0100 -> 1000)
+        press_button(2'b10); // 減速 (1000 -> 0001)
 
         // 測試邊界情況
         $display("--- Testing Boundaries ---");
-        press_button(2'b01); // 加速 (0001 -> 0010 - 假設循環)
+        press_button(2'b01); // 加速 (0001 -> 0010)
         press_button(2'b10); // 減速 (0010 -> 0001)
 
         // 測試同時按下
