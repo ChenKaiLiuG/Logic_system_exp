@@ -23,7 +23,7 @@ module Adjustable_Rainbow_Breathing_LED_tb;
     );
 
     // 設定時脈週期
-    parameter CLK_PERIOD = 8 ns; // 對應 125MHz 時脈
+    parameter CLK_PERIOD = 8; // 對應 125MHz 時脈
 
     initial begin
         // 初始化訊號
