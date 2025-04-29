@@ -1,4 +1,4 @@
-`timescale 1ns / 1ns
+`timescale 1ns / 1ps
 
 module Adjustable_Rainbow_Breathing_LED_tb;
 
@@ -23,94 +23,59 @@ module Adjustable_Rainbow_Breathing_LED_tb;
     );
 
     // 設定時脈週期
-    parameter CLK_PERIOD = 8; // 對應 125MHz 時脈
+    parameter CLK_PERIOD = 8 ns; // 對應 125MHz 時脈
 
     initial begin
         // 初始化訊號
         clk = 0;
         rst = 1;
-        btn = 2'b00; // 初始按鈕狀態
+        btn = 2'b00;
 
         // 產生時脈訊號
         forever #(CLK_PERIOD / 2) clk = ~clk;
     end
 
+    task press_button;
+        input [1:0] button_mask;
+        begin
+            btn = button_mask;
+            #10;
+            btn = 2'b00;
+            #20; // 給一些時間讓狀態更新
+            $display("Time=%0t: Buttons=%b, Speed Mode=%b", $time, button_mask, led_mode);
+        end
+    endtask
+
     initial begin
         // 施加重置訊號
         #10 rst = 0;
+        $display("Time=%0t: Reset done. Speed Mode=%b (should be 0100)", $time, led_mode);
+        #100; // 觀察初始狀態
 
-        // 觀察初始狀態
-        $display("Time=%0t: Reset done. Speed Mode LEDs: %b", $time, led_mode);
+        // 測試速度增加和減少
+        $display("--- Testing Speed Change ---");
+        press_button(2'b01); // 加速 (0100 -> 1000)
+        press_button(2'b01); // 加速 (1000 -> 0010)
+        press_button(2'b10); // 減速 (0010 -> 0100)
+        press_button(2'b10); // 減速 (0100 -> 0001)
 
-        // 等待一段時間觀察初始呼吸效果
-        #500;
-        $display("Time=%0t: Observing initial breathing (0.5s mode)...", $time);
-        #2000;
+        // 測試邊界情況
+        $display("--- Testing Boundaries ---");
+        press_button(2'b01); // 加速 (0001 -> 0010 - 假設循環)
+        press_button(2'b10); // 減速 (0010 -> 0001)
 
-        // 測試增加速度按鈕 (btn[0])
-        $display("Time=%0t: Pressing 'Speed Up' button (btn[0])...", $time);
-        btn = 2'b01;
-        #10;
-        btn = 2'b00;
-        $display("Time=%0t: Speed Mode LEDs: %b (should be 0100 -> 1000)", $time, led_mode);
-        #2000;
+        // 測試同時按下
+        $display("--- Testing Simultaneous Press ---");
+        press_button(2'b11); // 同時按下 (預期無變化)
 
-        // 再次增加速度
-        $display("Time=%0t: Pressing 'Speed Up' button (btn[0]) again...", $time);
-        btn = 2'b01;
-        #10;
-        btn = 2'b00;
-        $display("Time=%0t: Speed Mode LEDs: %b (should be 1000 -> 0010)", $time, led_mode);
-        #2000;
+        // 觀察一段時間的呼吸和顏色變化
+        $display("--- Observing Breathing and Color Change ---");
+        #5000;
 
-        // 測試減少速度按鈕 (btn[1])
-        $display("Time=%0t: Pressing 'Slow Down' button (btn[1])...", $time);
-        btn = 2'b10;
-        #10;
-        btn = 2'b00;
-        $display("Time=%0t: Speed Mode LEDs: %b (should be 0010 -> 0100)", $time, led_mode);
-        #2000;
-
-        // 再次減少速度
-        $display("Time=%0t: Pressing 'Slow Down' button (btn[1]) again...", $time);
-        btn = 2'b10;
-        #10;
-        btn = 2'b00;
-        $display("Time=%0t: Speed Mode LEDs: %b (should be 0100 -> 0001)", $time, led_mode);
-        #2000;
-
-        // 測試邊界情況 (繼續增加和減少)
-        $display("Time=%0t: Pressing 'Speed Up' at fastest speed...", $time);
-        btn = 2'b01;
-        #10;
-        btn = 2'b00;
-        $display("Time=%0t: Speed Mode LEDs: %b (should remain 0010)", $time, led_mode);
-        #1000;
-
-        $display("Time=%0t: Pressing 'Slow Down' at slowest speed...", $time);
-        btn = 2'b10;
-        #10;
-        btn = 2'b00;
-        $display("Time=%0t: Speed Mode LEDs: %b (should remain 0001)", $time, led_mode);
-        #1000;
-
-        // 同時按下兩個按鈕 (預期行為是沒有速度變化)
-        $display("Time=%0t: Pressing both 'Speed Up' and 'Slow Down'...", $time);
-        btn = 2'b11;
-        #10;
-        btn = 2'b00;
-        $display("Time=%0t: Speed Mode LEDs: %b (should remain at current speed)", $time, led_mode);
-        #1000;
-
-        // 觀察一段時間的顏色變化和呼吸效果
-        $display("Time=%0t: Observing color change and breathing across different speeds...", $time);
-        #10000;
-
-        // 結束測試
         $finish;
     end
 
-    // 監控 RGB LED 的變化 (可以添加更詳細的監控)
+    // 監控 RGB LED 和速度 (可選)
     always @(posedge clk) begin
         $display("Time=%0t: LED R=%b G=%b B=%b, Speed=%b", $time, led_r, led_g, led_b, led_mode);
     end
