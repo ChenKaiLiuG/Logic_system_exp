@@ -5,23 +5,21 @@ module Adjustable_Rainbow_Breathing_LED_tb;
     // 宣告測試模組的訊號
     reg clk;
     reg rst;
-    reg btn_inc;
-    reg btn_dec;
+    reg [1:0] btn;
     wire led_r;
     wire led_g;
     wire led_b;
-    wire [3:0] led_speed;
+    wire [3:0] led_mode;
 
     // 實例化待測試的模組
     Adjustable_Rainbow_Breathing_LED dut (
         .clk(clk),
         .rst(rst),
-        .btn_inc(btn_inc),
-        .btn_dec(btn_dec),
+        .btn(btn),
+        .led_mode(led_mode),
         .led_r(led_r),
         .led_g(led_g),
-        .led_b(led_b),
-        .led_speed(led_speed)
+        .led_b(led_b)
     );
 
     // 設定時脈週期
@@ -31,8 +29,7 @@ module Adjustable_Rainbow_Breathing_LED_tb;
         // 初始化訊號
         clk = 0;
         rst = 1;
-        btn_inc = 0;
-        btn_dec = 0;
+        btn = 2'b00; // 初始按鈕狀態
 
         // 產生時脈訊號
         forever #(CLK_PERIOD / 2) clk = ~clk;
@@ -43,61 +40,71 @@ module Adjustable_Rainbow_Breathing_LED_tb;
         #10 rst = 0;
 
         // 觀察初始狀態
-        $display("Time=%0t: Reset done. Speed Mode LEDs: %b", $time, led_speed);
+        $display("Time=%0t: Reset done. Speed Mode LEDs: %b", $time, led_mode);
 
         // 等待一段時間觀察初始呼吸效果
-        #5000;
+        #500;
         $display("Time=%0t: Observing initial breathing (0.5s mode)...", $time);
-        #20000;
+        #2000;
 
-        // 測試增加速度按鈕
-        $display("Time=%0t: Pressing 'Speed Up' button...", $time);
-        btn_inc = 1;
+        // 測試增加速度按鈕 (btn[0])
+        $display("Time=%0t: Pressing 'Speed Up' button (btn[0])...", $time);
+        btn = 2'b01;
         #10;
-        btn_inc = 0;
-        $display("Time=%0t: Speed Mode LEDs: %b (should be 0100 -> 1000)", $time, led_speed);
-        #20000;
+        btn = 2'b00;
+        $display("Time=%0t: Speed Mode LEDs: %b (should be 0100 -> 1000)", $time, led_mode);
+        #2000;
 
         // 再次增加速度
-        $display("Time=%0t: Pressing 'Speed Up' button again...", $time);
-        btn_inc = 1;
+        $display("Time=%0t: Pressing 'Speed Up' button (btn[0]) again...", $time);
+        btn = 2'b01;
         #10;
-        btn_inc = 0;
-        $display("Time=%0t: Speed Mode LEDs: %b (should be 1000 -> 0010)", $time, led_speed);
-        #20000;
+        btn = 2'b00;
+        $display("Time=%0t: Speed Mode LEDs: %b (should be 1000 -> 0010)", $time, led_mode);
+        #2000;
 
-        // 測試減少速度按鈕
-        $display("Time=%0t: Pressing 'Slow Down' button...", $time);
-        btn_dec = 1;
+        // 測試減少速度按鈕 (btn[1])
+        $display("Time=%0t: Pressing 'Slow Down' button (btn[1])...", $time);
+        btn = 2'b10;
         #10;
-        btn_dec = 0;
-        $display("Time=%0t: Speed Mode LEDs: %b (should be 0010 -> 0100)", $time, led_speed);
-        #20000;
+        btn = 2'b00;
+        $display("Time=%0t: Speed Mode LEDs: %b (should be 0010 -> 0100)", $time, led_mode);
+        #2000;
 
         // 再次減少速度
-        $display("Time=%0t: Pressing 'Slow Down' button again...", $time);
-        btn_dec = 1;
+        $display("Time=%0t: Pressing 'Slow Down' button (btn[1]) again...", $time);
+        btn = 2'b10;
         #10;
-        btn_dec = 0;
-        $display("Time=%0t: Speed Mode LEDs: %b (should be 0100 -> 0001)", $time, led_speed);
-        #20000;
+        btn = 2'b00;
+        $display("Time=%0t: Speed Mode LEDs: %b (should be 0100 -> 0001)", $time, led_mode);
+        #2000;
 
         // 測試邊界情況 (繼續增加和減少)
         $display("Time=%0t: Pressing 'Speed Up' at fastest speed...", $time);
-        btn_inc = 1;
+        btn = 2'b01;
         #10;
-        btn_inc = 0;
-        $display("Time=%0t: Speed Mode LEDs: %b (should remain 0010)", $time, led_speed);
-        #10000;
+        btn = 2'b00;
+        $display("Time=%0t: Speed Mode LEDs: %b (should remain 0010)", $time, led_mode);
+        #1000;
 
         $display("Time=%0t: Pressing 'Slow Down' at slowest speed...", $time);
-        btn_dec = 1;
+        btn = 2'b10;
         #10;
-        btn_dec = 0;
-        $display("Time=%0t: Speed Mode LEDs: %b (should remain 0001)", $time, led_speed);
+        btn = 2'b00;
+        $display("Time=%0t: Speed Mode LEDs: %b (should remain 0001)", $time, led_mode);
+        #1000;
+
+        // 同時按下兩個按鈕 (預期行為是沒有速度變化)
+        $display("Time=%0t: Pressing both 'Speed Up' and 'Slow Down'...", $time);
+        btn = 2'b11;
+        #10;
+        btn = 2'b00;
+        $display("Time=%0t: Speed Mode LEDs: %b (should remain at current speed)", $time, led_mode);
+        #1000;
+
+        // 觀察一段時間的顏色變化和呼吸效果
+        $display("Time=%0t: Observing color change and breathing across different speeds...", $time);
         #10000;
-
-
 
         // 結束測試
         $finish;
@@ -105,7 +112,7 @@ module Adjustable_Rainbow_Breathing_LED_tb;
 
     // 監控 RGB LED 的變化 (可以添加更詳細的監控)
     always @(posedge clk) begin
-        $display("Time=%0t: LED R=%b G=%b B=%b, Speed=%b", $time, led_r, led_g, led_b, led_speed);
+        $display("Time=%0t: LED R=%b G=%b B=%b, Speed=%b", $time, led_r, led_g, led_b, led_mode);
     end
 
 endmodule
