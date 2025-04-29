@@ -3,8 +3,8 @@
 
 module Adjustable_Rainbow_Breathing_LED (
     input clk, rst, btn_inc, btn_dec,
-    output reg led_r, led_g, led_b,
-    output reg [3:0] led_speed // 輸出目前速度模式
+    output led_r, led_g, led_b,
+    output [3:0] led_speed // 輸出目前速度模式
 );
 
 // --- 參數定義 ---
