@@ -1,80 +1,111 @@
-`timescale 1ns/1ns
+`timescale 1ns / 1ns
 
-module tb_Rainbow_Breathing_LED_V2();
+module Adjustable_Rainbow_Breathing_LED_tb;
 
-reg clk = 0;
-reg rst = 0;
-reg [1:0] btn = 2'b00;
-wire [3:0] led_mode;
-wire led_r, led_g, led_b;
+    // 宣告測試模組的訊號
+    reg clk;
+    reg rst;
+    reg btn_inc;
+    reg btn_dec;
+    wire led_r;
+    wire led_g;
+    wire led_b;
+    wire [3:0] led_speed;
 
-// DUT
-Rainbow_Breathing_LED_V2 dut (
-    .clk(clk),
-    .rst(rst),
-    .btn(btn),
-    .led_mode(led_mode),
-    .led_r(led_r),
-    .led_g(led_g),
-    .led_b(led_b)
-);
+    // 實例化待測試的模組
+    Adjustable_Rainbow_Breathing_LED dut (
+        .clk(clk),
+        .rst(rst),
+        .btn_inc(btn_inc),
+        .btn_dec(btn_dec),
+        .led_r(led_r),
+        .led_g(led_g),
+        .led_b(led_b),
+        .led_speed(led_speed)
+    );
 
-// 100MHz clock (10ns period)
-always #5 clk = ~clk;
+    // 設定時脈週期
+    parameter CLK_PERIOD = 8 ns; // 對應 125MHz 時脈
 
-// 測試流程
-initial begin
-    $display("Start Simulation");
-    
-    // Reset
-    rst = 1; #10;
-    rst = 0;
-    $display("[%0t] Reset released", $time);
+    initial begin
+        // 初始化訊號
+        clk = 0;
+        rst = 1;
+        btn_inc = 0;
+        btn_dec = 0;
 
-    #20000000;
+        // 產生時脈訊號
+        forever #(CLK_PERIOD / 2) clk = ~clk;
+    end
 
-    // 模擬 btn[0] 按下（加速）
-    btn = 2'b01; 
-    #20;
-    btn = 2'b00; 
-    #20000000;
-    $display("[%0t] Speed Up", $time);
+    initial begin
+        // 施加重置訊號
+        #10 rst = 0;
 
-    // 模擬再加速
-    btn = 2'b01; 
-    #20;
-    btn = 2'b00; 
-    #20000000;
-    $display("[%0t] Speed Up Again", $time);
+        // 觀察初始狀態
+        $display("Time=%0t: Reset done. Speed Mode LEDs: %b", $time, led_speed);
 
-    // 模擬再加速
-    btn = 2'b01; 
-    #20;
-    btn = 2'b00; 
-    #20000000;
-    $display("[%0t] Speed Up Again", $time);
+        // 等待一段時間觀察初始呼吸效果
+        #5000;
+        $display("Time=%0t: Observing initial breathing (0.5s mode)...", $time);
+        #20000;
 
-    // 模擬減速
-    btn = 2'b10; 
-    #20;
-    btn = 2'b00; 
-    #20000000;
-    $display("[%0t] Slow Down", $time);
+        // 測試增加速度按鈕
+        $display("Time=%0t: Pressing 'Speed Up' button...", $time);
+        btn_inc = 1;
+        #10;
+        btn_inc = 0;
+        $display("Time=%0t: Speed Mode LEDs: %b (should be 0100 -> 1000)", $time, led_speed);
+        #20000;
 
-    // 測試 Reset 回復到最慢速度
-    rst = 1; 
-    #100;
-    rst = 0;
-    $display("[%0t] Reset again", $time);
+        // 再次增加速度
+        $display("Time=%0t: Pressing 'Speed Up' button again...", $time);
+        btn_inc = 1;
+        #10;
+        btn_inc = 0;
+        $display("Time=%0t: Speed Mode LEDs: %b (should be 1000 -> 0010)", $time, led_speed);
+        #20000;
 
-    #20000000;
+        // 測試減少速度按鈕
+        $display("Time=%0t: Pressing 'Slow Down' button...", $time);
+        btn_dec = 1;
+        #10;
+        btn_dec = 0;
+        $display("Time=%0t: Speed Mode LEDs: %b (should be 0010 -> 0100)", $time, led_speed);
+        #20000;
 
-    $finish;
-end
+        // 再次減少速度
+        $display("Time=%0t: Pressing 'Slow Down' button again...", $time);
+        btn_dec = 1;
+        #10;
+        btn_dec = 0;
+        $display("Time=%0t: Speed Mode LEDs: %b (should be 0100 -> 0001)", $time, led_speed);
+        #20000;
 
-// 顯示目前 LED 狀態
-always @(posedge clk) begin
-    $display("Time: %0t | Mode: %b | LED RGB: %b%b%b", $time, led_mode, led_r, led_g, led_b);
-end
+        // 測試邊界情況 (繼續增加和減少)
+        $display("Time=%0t: Pressing 'Speed Up' at fastest speed...", $time);
+        btn_inc = 1;
+        #10;
+        btn_inc = 0;
+        $display("Time=%0t: Speed Mode LEDs: %b (should remain 0010)", $time, led_speed);
+        #10000;
+
+        $display("Time=%0t: Pressing 'Slow Down' at slowest speed...", $time);
+        btn_dec = 1;
+        #10;
+        btn_dec = 0;
+        $display("Time=%0t: Speed Mode LEDs: %b (should remain 0001)", $time, led_speed);
+        #10000;
+
+
+
+        // 結束測試
+        $finish;
+    end
+
+    // 監控 RGB LED 的變化 (可以添加更詳細的監控)
+    always @(posedge clk) begin
+        $display("Time=%0t: LED R=%b G=%b B=%b, Speed=%b", $time, led_r, led_g, led_b, led_speed);
+    end
 
 endmodule
