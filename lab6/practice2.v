@@ -22,6 +22,7 @@ module Adjustable_Rainbow_Breathing_LED (
     reg [2:0] color_idx;
     reg [7:0] pwm_counter;
     reg target_r_reg, target_g_reg, target_b_reg; // 儲存目標顏色 PWM 比較值
+    reg [31:0] breath_period; // 將 breath_period 宣告為 reg
 
     // --- 速度模式控制 ---
     always @(posedge clk or posedge rst) begin
@@ -51,7 +52,6 @@ module Adjustable_Rainbow_Breathing_LED (
             breath_counter <= 0;
             brightness <= 0;
         end else begin
-            integer breath_period;
             case (speed_mode)
                 2'b00: breath_period = SPEED_2S_COUNT;
                 2'b01: breath_period = SPEED_1S_COUNT;
