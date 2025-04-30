@@ -1,18 +1,18 @@
-`timescale 1ns / 1ns
+`timescale 1ns/1ns
 
 module Adjustable_Rainbow_Breathing_LED_tb;
 
-    // 宣告測試模組的訊號
+    // Inputs
     reg clk;
     reg rst;
     reg [1:0] btn;
-    wire led_r;
-    wire led_g;
-    wire led_b;
-    wire [3:0] led_mode;
 
-    // 實例化待測試的模組
-    Adjustable_Rainbow_Breathing_LED dut (
+    // Outputs
+    wire [3:0] led_mode;
+    wire led_r, led_g, led_b;
+
+    // Instantiate the Unit Under Test (UUT)
+    Adjustable_Rainbow_Breathing_LED uut (
         .clk(clk),
         .rst(rst),
         .btn(btn),
@@ -22,63 +22,66 @@ module Adjustable_Rainbow_Breathing_LED_tb;
         .led_b(led_b)
     );
 
-    // 設定時脈週期
-    parameter CLK_PERIOD = 8; // 對應 125MHz 時脈
-
+    // Clock Generation
+    parameter CLK_PERIOD = 8; // 125MHz clock => 8ns period [cite: 2, 3]
     initial begin
-        // 初始化訊號
-        clk = 0;
-        rst = 1;
+        clk = 1'b0;
+        forever #(CLK_PERIOD/2) clk = ~clk;
+    end
+
+    // Reset Generation
+    initial begin
+        rst = 1'b1;
+        #10;  // Hold reset for 10 time units
+        rst = 1'b0;
+    end
+
+    // Test Sequence
+    initial begin
+        // Initialize inputs
         btn = 2'b00;
 
-        // 產生時脈訊號
-        forever #(CLK_PERIOD / 2) clk = ~clk;
-    end
-
-    task press_button;
-        input [1:0] button_mask;
-        begin
-            btn = button_mask;
-            #10;
-            btn = 2'b00;
-            #20; // 給一些時間讓狀態更新
-            $display("Time=%0t: Buttons=%b, Speed Mode=%b", $time, button_mask, led_mode);
-        end
-    endtask
-
-    initial begin
-        // 施加重置訊號並觀察初始狀態 (2 秒模式, 紅色)
-        #10 rst = 0;
+        // Test Case 1: Initial State
         #20;
-        $display("Time=%0t: Reset done. Speed Mode=%b (should be 0001), Color should be Red", $time, led_mode);
+        $display("Time=%0t: rst=%b, btn=%b, led_mode=%b, led_r=%b, led_g=%b, led_b=%b", $time, rst, btn, led_mode, led_r, led_g, led_b);
+        assert(led_mode == 4'b0010) else $error("ERROR: Initial speed mode should be 1 (0010)");
+
+        // Test Case 2: Speed Up Button Press
+        btn = 2'b01; // Press btn[0] to speed up
+        #((20 * 8 * 20)/2); // Wait for debounce time (20ms) + extra
+        btn = 2'b00;
         #100;
+        $display("Time=%0t: rst=%b, btn=%b, led_mode=%b, led_r=%b, led_g=%b, led_b=%b", $time, rst, btn, led_mode, led_r, led_g, led_b);
+        assert(led_mode == 4'b0100) else $error("ERROR: Speed mode should increase to 2 (0100)");
 
-        // 測試速度增加和減少
-        $display("--- Testing Speed Change ---");
-        press_button(2'b01); // 加速 (0001 -> 0010)
-        press_button(2'b01); // 加速 (0010 -> 0100)
-        press_button(2'b10); // 減速 (0100 -> 1000)
-        press_button(2'b10); // 減速 (1000 -> 0001)
+        // Test Case 3: Slow Down Button Press
+        btn = 2'b10; // Press btn[1] to slow down
+        #((20 * 8 * 20)/2); // Wait for debounce time (20ms)
+        btn = 2'b00;
+        #100;
+         $display("Time=%0t: rst=%b, btn=%b, led_mode=%b, led_r=%b, led_g=%b, led_b=%b", $time, rst, btn, led_mode, led_r, led_g, led_b);
+        assert(led_mode == 4'b0010) else $error("ERROR: Speed mode should decrease to 1 (0010)");
 
-        // 測試邊界情況
-        $display("--- Testing Boundaries ---");
-        press_button(2'b01); // 加速 (0001 -> 0010)
-        press_button(2'b10); // 減速 (0010 -> 0001)
+        // Test Case 4: Multiple Speed Up Presses
+        btn = 2'b01; #((20 * 8 * 20)/2); btn = 2'b00; #100;
+        btn = 2'b01; #((20 * 8 * 20)/2); btn = 2'b00; #100;
+        $display("Time=%0t: rst=%b, btn=%b, led_mode=%b, led_r=%b, led_g=%b, led_b=%b", $time, rst, btn, led_mode, led_r, led_g, led_b);
+        assert(led_mode == 4'b1000) else $error("ERROR: Speed mode should be 3 (1000)");
 
-        // 測試同時按下
-        $display("--- Testing Simultaneous Press ---");
-        press_button(2'b11); // 同時按下 (預期無變化)
+        // Test Case 5: Multiple Slow Down Presses
+         btn = 2'b10; #((20 * 8 * 20)/2); btn = 2'b00; #100;
+         btn = 2'b10; #((20 * 8 * 20)/2); btn = 2'b00; #100;
+         btn = 2'b10; #((20 * 8 * 20)/2); btn = 2'b00; #100;
+         $display("Time=%0t: rst=%b, btn=%b, led_mode=%b, led_r=%b, led_g=%b, led_b=%b", $time, rst, btn, led_mode, led_r, led_g, led_b);
+         assert(led_mode == 4'b0001) else $error("ERROR: Speed mode should be 0 (0001)");
 
-        // 觀察一段時間的呼吸和顏色變化
-        $display("--- Observing Breathing and Color Change ---");
-        #5000;
+        // Test Case 6: Color Change (Check after 1 second)
+        #100000;  // Wait for 1 second (125_000_000 cycles) - Adjust as needed
+        $display("Time=%0t: rst=%b, btn=%b, led_mode=%b, led_r=%b, led_g=%b, led_b=%b", $time, rst, btn, led_mode, led_r, led_g, led_b);
+       // Add assertions to check for color changes (this is complex and depends on PWM)
 
-        $finish;
-    end
-
-    // 監控 RGB LED 和速度 (可選)
-    always @(posedge clk) begin
-        $display("Time=%0t: LED R=%b G=%b B=%b, Speed=%b", $time, led_r, led_g, led_b, led_mode);
+        #100;
+        $finish; // End simulation
     end
 
 endmodule
